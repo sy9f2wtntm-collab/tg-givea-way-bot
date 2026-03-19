@@ -1,7 +1,6 @@
 import logging
 import os
 import csv
-import random
 import psycopg2
 from aiogram import Bot, Dispatcher, types
 from aiogram.utils import executor
@@ -74,7 +73,6 @@ def is_admin(message: types.Message) -> bool:
     return str(message.from_user.id) == ADMIN_ID
 
 
-# 🔥 НОВАЯ КОМАНДА ОЧИСТКИ БАЗЫ
 @dp.message_handler(commands=["clear"])
 async def clear_db(message: types.Message):
     if not is_admin(message):
@@ -84,14 +82,11 @@ async def clear_db(message: types.Message):
     conn = get_conn()
     conn.autocommit = True
     cur = conn.cursor()
-
-    # Полная очистка + сброс нумерации
     cur.execute("TRUNCATE TABLE users RESTART IDENTITY")
-
     cur.close()
     conn.close()
 
-    await message.answer("🔥 База очищена! Можно запускать новый розыгрыш.")
+    await message.answer("🔥 База очищена! Можно начинать новый розыгрыш.")
 
 
 @dp.message_handler(commands=["start"])
@@ -106,7 +101,17 @@ async def start(message: types.Message):
         await message.answer("Вы уже зарегистрированы 👍")
         return
 
+    text = (
+        "💥 Условия участия:\n"
+        "1. Введи ФИО\n"
+        "2. Введи номер телефона\n\n"
+        "🎟 Ты получишь номер участника\n"
+        "🎲 Победитель выбирается случайно\n\n"
+    )
+
     user_state[message.from_user.id] = {"step": "name"}
+
+    await message.answer(text)
     await message.answer("Введите ФИО:")
 
 
