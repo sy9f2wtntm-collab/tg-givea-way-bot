@@ -280,3 +280,19 @@ async def handle_message(message: types.Message):
 if __name__ == "__main__":
     init_db()
     executor.start_polling(dp, skip_updates=True)
+@dp.message_handler(commands=['clear'])
+async def clear_users(message: types.Message):
+    if str(message.from_user.id) != ADMIN_ID:
+        await message.answer("Нет доступа")
+        return
+
+    conn = psycopg2.connect(DATABASE_URL, sslmode="require")
+    conn.autocommit = True
+    cur = conn.cursor()
+
+    cur.execute("TRUNCATE users RESTART IDENTITY")
+
+    cur.close()
+    conn.close()
+
+    await message.answer("🔥 База полностью очищена")
