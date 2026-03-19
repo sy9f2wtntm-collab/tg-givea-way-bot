@@ -148,3 +148,20 @@ async def handle(message: types.Message):
 
 if __name__ == "__main__":
     executor.start_polling(dp, skip_updates=True)
+@dp.message_handler(commands=['users'])
+async def get_users(message: types.Message):
+    if str(message.from_user.id) != ADMIN_ID:
+        return
+
+    conn = psycopg2.connect(DATABASE_URL, sslmode="require")
+    cur = conn.cursor()
+
+    cur.execute("SELECT id, full_name, phone FROM users")
+    users = cur.fetchall()
+
+    text = "👥 Участники:\n\n"
+
+    for user in users:
+        text += f"{user[0]}. {user[1]} — {user[2]}\n"
+
+    await message.answer(text[:4000])
