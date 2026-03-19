@@ -165,3 +165,25 @@ async def get_users(message: types.Message):
         text += f"{user[0]}. {user[1]} — {user[2]}\n"
 
     await message.answer(text[:4000])
+@dp.message_handler(commands=['users'])
+async def get_users(message: types.Message):
+    if str(message.from_user.id) != ADMIN_ID:
+        await message.answer("Нет доступа")
+        return
+
+    conn = psycopg2.connect(DATABASE_URL, sslmode="require")
+    cur = conn.cursor()
+
+    cur.execute("SELECT id, full_name, phone FROM users")
+    users = cur.fetchall()
+
+    if not users:
+        await message.answer("Нет участников")
+        return
+
+    text = "👥 Участники:\n\n"
+
+    for user in users:
+        text += f"{user[0]}. {user[1]} — {user[2]}\n"
+
+    await message.answer(text[:4000])
